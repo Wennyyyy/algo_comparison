@@ -1,0 +1,19 @@
+5
+100 30 66 30 26
+66 100 16 55 31
+89 86 100 38 91
+43 47 13 100 7
+69 98 14 39 100
+
+
+// Brute Force
+The shortest Hamiltonian cycle:
+1 2 5 3 4 1
+Total cost: 156
+Time: 0.004 s
+
+// BnB data1
+
+// BnB data2
+
+// BnB data3
