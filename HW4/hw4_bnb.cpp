@@ -3,6 +3,7 @@
 #include <queue>
 #include <utility>
 #include <time.h>
+#include <cstring>
 using namespace std;
 #define N 15
 #define MAX 100
