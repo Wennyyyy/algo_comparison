@@ -1,4 +1,4 @@
-TARGET = algo4_bruteforce.exe testcaseproduction.exe
+TARGET = algo4_bruteforce.exe testcaseproduction.exe hw4_bnb.exe
 
 all: $(TARGET)
 
