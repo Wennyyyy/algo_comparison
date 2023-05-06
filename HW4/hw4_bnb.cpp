@@ -1,15 +1,16 @@
+#include <time.h>
+#include <windows.h>
+
+#include <cstring>
 #include <iostream>
-#include <vector>
 #include <queue>
 #include <utility>
-#include <time.h>
-#include <cstring>
+#include <vector>
 using namespace std;
 #define N 15
 #define MAX 100
 
-struct Node
-{
+struct Node {
     vector<pair<int, int> > path;
     int matrix[N][N];
     int cost;
@@ -17,8 +18,7 @@ struct Node
     int level;
 };
 
-Node *newNode(int n, int parentMatrix[N][N], vector<pair<int, int> > const &path, int level, int i, int j)
-{
+Node *newNode(int n, int parentMatrix[N][N], vector<pair<int, int> > const &path, int level, int i, int j) {
     Node *node = new Node;
 
     node->level = level;
@@ -37,8 +37,7 @@ Node *newNode(int n, int parentMatrix[N][N], vector<pair<int, int> > const &path
     return node;
 }
 
-int calLowerBound(int n, int matrix[N][N])
-{
+int calLowerBound(int n, int matrix[N][N]) {
     int rowMin[n];
     // initial each row's minimim with 100
     for (int i = 0; i < n; i++) rowMin[i] = MAX;
@@ -85,41 +84,39 @@ int calLowerBound(int n, int matrix[N][N])
     // sum the cost
     int cost = 0;
     for (int i = 0; i < n; i++) {
-        if(rowMin[i] != MAX) cost += rowMin[i];
-        if(colMin[i] != MAX) cost += colMin[i];
+        if (rowMin[i] != MAX) cost += rowMin[i];
+        if (colMin[i] != MAX) cost += colMin[i];
     }
 
     return cost;
 }
 
-
-struct cmp
-{
+struct cmp {
     bool operator()(const Node *a, const Node *b) const {
         return a->cost > b->cost;
     }
 };
 
-int main()
-{
-    double START,END;
+int main(int argc, char *argv[]) {
+    LARGE_INTEGER start, end, tc;
     int n;
     int totalCost = 0;
     int matrix[N][N];
+    double time;
     vector<pair<int, int> > path;
 
     // store all nodes and sorted from the less cost
     priority_queue<Node *, vector<Node *>, cmp> nodes_q;
 
     cin >> n;
-    for(int i=0; i<n; i++) {
-        for(int j=0; j<n; j++) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
             cin >> matrix[i][j];
         }
     }
 
-    START = clock();
-
+    QueryPerformanceFrequency(&tc);
+    QueryPerformanceCounter(&start);
     // starts from Node 0
     Node *root = new Node;
     root->level = 0;
@@ -130,21 +127,19 @@ int main()
     root->cost = calLowerBound(n, root->matrix);
     nodes_q.push(root);
 
-    while (!nodes_q.empty())
-    {
+    while (!nodes_q.empty()) {
         Node *minCostNode = nodes_q.top();
         nodes_q.pop();
 
         // if all cities are visited
-        if (minCostNode->level == n - 1)
-        {
+        if (minCostNode->level == n - 1) {
             minCostNode->path.push_back(make_pair(minCostNode->index, 0));
             // print the path
             cout << "The shortest Hamiltonian cycle: \n";
-            for (int i = 0; i < minCostNode->path.size(); i++){
+            for (int i = 0; i < minCostNode->path.size(); i++) {
                 cout << minCostNode->path[i].first + 1 << " ";
             }
-            cout << minCostNode->path[n-1].second + 1 << "\n";
+            cout << minCostNode->path[n - 1].second + 1 << "\n";
             totalCost = minCostNode->cost;
             break;
         }
@@ -157,10 +152,12 @@ int main()
             }
         }
     }
-    END = clock();
+
+    QueryPerformanceCounter(&end);
+    time = (double)(end.QuadPart - start.QuadPart) / (double)tc.QuadPart;
 
     cout << "Total cost: " << totalCost << endl;
-    cout << "Time: " << (END - START) / CLOCKS_PER_SEC << endl;
+    cout << "Time: " << time << endl;
 
     return 0;
 }

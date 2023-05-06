@@ -23,7 +23,15 @@ def arg_parse():
     parser.add_argument('--version', action='version', version='%(prog)s 0.1')
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument('-l', '--log', dest='log', type=str,
-                        metavar='LOG_FILE', default="run_testcases.log", help='log file name')
+                        metavar='FILE', default="run_testcases.log", help='log file name')
+    parser.add_argument('--input_dir', dest='input_dir', type=str,
+                        metavar='DIR', default="data", help='input dir')
+    parser.add_argument('--result', dest='result', type=str,
+                        metavar='FILE', default="BnB.xlsx", help='excel file name')
+    parser.add_argument('--exe', dest='exe', type=str,
+                        metavar='FILE', default="hw4_bnb.exe", help='exe file name')
+    parser.add_argument('--max_n', dest='max_n', type=int,
+                        metavar='NUM', default="100", help='max n to execute')
 
     # 解析參數
     return parser.parse_args()
@@ -68,42 +76,45 @@ def get_logger():
 if __name__ == '__main__':
     args = arg_parse()  # 命令參數解析
     logger = get_logger()  # 取得logger
-    testcase_path = 'testcase'
-    # log_path = 'log'
+    input_path = args.input_dir
+    report_path = 'Report'
 
     # 檢查資料夾是否存在
-    if not os.path.exists(testcase_path):
-        logger.critical('There is no ' + testcase_path)
+    if not os.path.exists(input_path):
+        logger.critical('There is no ' + input_path)
         exit()
 
-    # if not os.path.exists(log_path):
-    #     os.mkdir(log_path)
+    if not os.path.exists(report_path):
+        logger.critical('There is no ' + report_path)
+        exit()
+    report_file = os.path.join(report_path, args.result)
 
     # Build exe
-    os.system("powershell.exe \"make\"")
+    os.system("make EXEC={}".format(args.exe))
 
-    # 初始化資料
+    # 初始化資料表格
     scores = pd.DataFrame(
         {},
         index=[],
     )
 
     # 取得資料夾下的所有檔案列表
-    for f in os.listdir(testcase_path):
-        if (re.match("testcase", f)):
-            match = re.match("testcase(\d+)-(\d+)$", f)
+    for f in os.listdir(input_path):
+        match = re.match("testcase(\d+)-(\d+).txt$", f)
+        if (match):
             n = int(match.group(1))
-            if n > 9:
+            if n > args.max_n:
                 continue
-            idx = match.group(2)
-            repeat_times = 8
-            if (n > 11):
-                repeat_times = 4
-            if (n > 12):
-                repeat_times = 1
+            idx = 'n = {}'.format(n)
+            key = int(match.group(2))
+            repeat_times = 5
+
+            logger.info(f)
             for i in range(repeat_times):
                 no_result = True
-                cmd = ".\\algo4_bruteforce.exe {}\\{}".format(testcase_path, f)
+                input_file = os.path.join(input_path, f)
+                exe_file = os.path.join('.', args.exe)
+                cmd = "{} < {} ".format(exe_file, input_file)
                 logger.info(
                     "========================================================")
                 logger.info("Start {}th {}".format(i, f))
@@ -116,39 +127,48 @@ if __name__ == '__main__':
                 stdout = stdout.replace('\r', '')
                 logger.debug("Output:\n" + stdout)
                 for line in io.StringIO(stdout):
-                    match = re.search('Time:\s+(\d+)(\.\d+)?\s+s', line)
+                    match_int = re.search('Time:\s+(\d+)$', line)
+                    match_float = re.search('Time:\s+(\d+\.\d+)$', line)
+                    match_exp = re.search(
+                        'Time:\s+(\d*\.?\d+([eE][-+]?\d+)?)$', line)
 
-                    if match:
+                    if match_int or match_float or match_exp:
                         no_result = False
-                        if match.group(2) is not None:
-                            time = float(match.group(1)+match.group(2))
+                        if match_int:
+                            time = float(match_int.group(1))
+                        elif match_float:
+                            time = float(match_float.group(1))
                         else:
-                            time = float(match.group(1))
+                            time = float(match_exp.group(1))
 
                         logger.info(
                             "{}th {} cost {} sec".format(i, f, time))
                         if i == 0:
-                            if idx in scores.keys():
-                                if 'n = {}'.format(n) in scores.index:
-                                    scores[idx]['n = {}'.format(n)] = time
+                            if key in scores.keys():
+                                if idx in scores.index:
+                                    scores[key][idx] = time
                                 else:
                                     new_scores = pd.DataFrame({
-                                        idx: time
-                                    }, index=['n = {}'.format(n)])
+                                        key: time
+                                    }, index=[idx])
+
                                     scores = pd.concat([scores, new_scores])
+
+                                    # file executed in
                                     scores = scores.sort_index(
                                         key=lambda index: [int(x[1]) for x in index.str.split(" = ")])
                             else:
-                                scores[idx] = pd.Series(
-                                    [time], index=['n = {}'.format(n)])
+                                scores[key] = pd.Series(
+                                    [time], index=[idx])
                         else:
-                            scores[idx]['n = {}'.format(n)] = (
-                                scores[idx]['n = {}'.format(n)]*i+time)/(i+1)
+                            # calculate average time for each testcase repeat_times
+                            scores[key][idx] = (
+                                scores[key][idx]*i+time)/(i+1)
 
                         logger.info("Temp result:\n" + str(scores) + "\n\n")
 
                         # 將DataFrame對象保存到Excel文件中
-                        scores.to_excel('Brute Force.xlsx')
+                        scores.to_excel(report_file)
                         break
                 if no_result:
                     logger.error("{}th {} fail. Output:{}".format(
@@ -159,4 +179,4 @@ if __name__ == '__main__':
     logger.info("Temp result:\n" + str(scores) + "\n")
 
     # 將DataFrame對象保存到Excel文件中
-    scores.to_excel('Brute Force.xlsx')
+    scores.to_excel(report_file)

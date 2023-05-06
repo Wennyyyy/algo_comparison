@@ -57,34 +57,26 @@ int TSP(vector<vector<int>> &map, int n, int s) {
     return minPath;
 }
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        cout << "ERROR!!ROAR!!" << endl;
-        return 1;
-    }
-    ifstream fin;
-    ofstream fout;
-    fin.open(argv[1], ios::in);
-    if (!fin.is_open()) {
-        cout << "Failed to open" << argv[1] << "!!! U idiot sandwitch" << endl;
-        return 1;
-    }
-
     int nCities, solutionCost = 0;
-    fin >> nCities;
+    cin >> nCities;
     vector<vector<int>> Cost(nCities, vector<int>(nCities));
     for (int i = 0; i < nCities; i++) {
         for (int j = 0; j < nCities; j++) {
-            fin >> Cost[i][j];
+            cin >> Cost[i][j];
         }
     }
-    fin.close();
 
-    clock_t startTime, endTime;
+    LARGE_INTEGER start, end, tc;
     int s = 0;
-    startTime = clock();
-    Sleep(1000);
+    double time = 0;
+
+    QueryPerformanceFrequency(&tc);
+    QueryPerformanceCounter(&start);
+
     solutionCost = TSP(Cost, nCities, s);
-    endTime = clock();
+
+    QueryPerformanceCounter(&end);
+    time = (double)(end.QuadPart - start.QuadPart) / (double)tc.QuadPart;
     cout << "The shortest Hamiltonian cycle:" << endl
          << "1 ";
     for (int i = 0; i < solution.size(); i++) {
@@ -96,6 +88,7 @@ int main(int argc, char *argv[]) {
         }
     }
     cout << "Total cost: " << solutionCost << endl;
-    cout << "Time: " << ((double)(endTime - startTime)) / CLOCKS_PER_SEC - 1 << " s\n";
+    cout << "Time: " << time << endl;
+
     return 0;
 }
