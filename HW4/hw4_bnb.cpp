@@ -1,5 +1,9 @@
 #include <time.h>
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include <cstring>
 #include <iostream>
@@ -98,7 +102,11 @@ struct cmp {
 };
 
 int main(int argc, char *argv[]) {
+#ifdef _WIN32
     LARGE_INTEGER start, end, tc;
+#else
+    struct timeval start, end;
+#endif
     int n;
     int totalCost = 0;
     int matrix[N][N];
@@ -114,9 +122,12 @@ int main(int argc, char *argv[]) {
             cin >> matrix[i][j];
         }
     }
-
+#ifdef _WIN32
     QueryPerformanceFrequency(&tc);
     QueryPerformanceCounter(&start);
+#else
+    gettimeofday(&start, NULL);
+#endif
     // starts from Node 0
     Node *root = new Node;
     root->level = 0;
@@ -153,8 +164,13 @@ int main(int argc, char *argv[]) {
         }
     }
 
+#ifdef _WIN32
     QueryPerformanceCounter(&end);
     time = (double)(end.QuadPart - start.QuadPart) / (double)tc.QuadPart;
+#else
+    gettimeofday(&end, NULL);
+    time = (end.tv_sec - start.tv_sec) + (double)(end.tv_usec - start.tv_usec) / 1000000.0;
+#endif
 
     cout << "Total cost: " << totalCost << endl;
     cout << "Time: " << time << endl;

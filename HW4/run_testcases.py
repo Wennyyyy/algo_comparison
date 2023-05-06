@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import argparse
 import logging
 import re
@@ -99,7 +100,9 @@ if __name__ == '__main__':
     )
 
     # 取得資料夾下的所有檔案列表
-    for f in os.listdir(input_path):
+    file_list = os.listdir(input_path)
+    file_list.sort()
+    for f in file_list:
         match = re.match("testcase(\d+)-(\d+).txt$", f)
         if (match):
             n = int(match.group(1))
@@ -107,8 +110,7 @@ if __name__ == '__main__':
                 continue
             idx = 'n = {}'.format(n)
             key = int(match.group(2))
-            repeat_times = 5
-
+            repeat_times = 1
             logger.info(f)
             for i in range(repeat_times):
                 no_result = True
@@ -144,7 +146,7 @@ if __name__ == '__main__':
                         logger.info(
                             "{}th {} cost {} sec".format(i, f, time))
                         if i == 0:
-                            if key in scores.keys():
+                            if key in scores.columns:
                                 if idx in scores.index:
                                     scores[key][idx] = time
                                 else:
