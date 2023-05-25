@@ -10,13 +10,13 @@
 #include <iostream>
 using namespace std;
 // swap elements
-void swap(unsigned int *a, unsigned int *b) {
+void swap(int *a, int *b) {
   int t = *a;
   *a = *b;
   *b = t;
 }
 // rearrangement
-int partition(vector<unsigned int>&data, int left, int right) {
+int partition(vector<int>&data, int left, int right) {
   int pivot = data[right], i = (left - 1);
   for (int j = left; j < right; j++) {
     if (data[j] < pivot) {
@@ -27,7 +27,7 @@ int partition(vector<unsigned int>&data, int left, int right) {
   swap(&data[i + 1], &data[right]);
   return (i + 1);
 }
-void quickSort(vector<unsigned int>&data, int left, int right) {
+void quickSort(vector<int>&data, int left, int right) {
   if (left < right) {
     int piv = partition(data, left, right);
 
@@ -38,9 +38,9 @@ void quickSort(vector<unsigned int>&data, int left, int right) {
   }
 }
 int main(int argc, char *argv[]) {
-    unsigned int n = 0, k = 0, temp = 0;
+     int n = 0, k = 0, temp = 0;
     cin >> n >> k;
-    vector<unsigned int> data(n);
+    vector<int> data(n);
     for (int i = 0; i < n; i++) {
         cin >> data[i];
     }
